@@ -1,17 +1,18 @@
 # FastAPI CSV Uploader
 
-This is a FastAPI application that allows users to upload CSV files and read their contents. It’s designed for ease of use and quick integration into various projects.
+This is a FastAPI application that allows users to upload .mseed files and read their contents.
 
 ## Features
 
-- Upload CSV files via a POST endpoint.
-- Read and return the contents of the uploaded CSV file as JSON.
+- Upload .mseed files via a POST endpoint.
+- Read and return the contents of the uploaded .mseed file as JSON.
 - Basic error handling for unsupported file types.
 
 ## Requirements
 
 - Python 3.9 or higher (if running locally)
 - Docker (for running the application in a container)
+- obspy (To read .mseed)
 
 ### Run the application
 
