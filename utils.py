@@ -7,8 +7,8 @@ def generate_seismic_chart(stream, phase_data):
     fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
     fig.suptitle(f"Seismic Waveforms and Detected Phases for {stream[0].stats.station}")
 
-    colors = {'Z': 'black', 'N': 'red', 'E': 'green'}
-    phase_colors = {'P': 'blue', 'S': 'orange'}
+    colors = {'Z': 'black', 'N': 'black', 'E': 'black'}
+    phase_colors = {'P': 'red', 'S': 'blue'}
 
     start_time = stream[0].stats.starttime
     for i, tr in enumerate(stream):
