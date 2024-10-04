@@ -13,6 +13,8 @@ app = FastAPI()
 
 PHASENET_API_URL = "https://ai4eps-eqnet.hf.space"
 
+PD = None
+
 @app.post("/plot/")
 async def predict(file: UploadFile = File(...)):
     if file.filename.endswith('.mseed'):
@@ -48,6 +50,9 @@ async def predict(file: UploadFile = File(...)):
 
             fig = generate_seismic_chart(stream, phase_data)
 
+            global PD
+            PD = phase_data
+
             # Save the chart to a bytes buffer
             with NamedTemporaryFile("wb+", delete=False) as f:
                 fig.savefig(f, format='png')
@@ -63,3 +68,17 @@ async def predict(file: UploadFile = File(...)):
             return {"message": "Error reading MiniSEED file", "error": str(e)}
     else:
         return {"message": "Only MiniSEED files are allowed"}
+    
+
+@app.get("/data/")
+async def data():
+    if PD:
+        return {
+            "network": "BW",
+            "station": "BW",
+            "latitude": -20.49,
+            "longitude": 30.00,
+            "phase_data": PD
+        }
+    return {}
+    
