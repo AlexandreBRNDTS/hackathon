@@ -1,12 +1,12 @@
-# FastAPI CSV Uploader
+# FastAPI MSEED Uploader
 
-This is a FastAPI application that allows users to upload .mseed files and read their contents.
+This FastAPI-based web application processes seismic data from MiniSEED files and generates seismic waveform charts
 
 ## Features
 
-- Upload .mseed files via a POST endpoint.
-- Read and return the contents of the uploaded .mseed file as JSON.
-- Basic error handling for unsupported file types.
+- Seismic Data Processing: Upload MiniSEED files to visualize seismic waveforms for three channels (Z, N, E).
+- Phase Detection: Detect P and S seismic phases using the PhaseNet API.
+- Plot Generation: Generate PNG images of seismic waveforms with phase information.
 
 ## Requirements
 
@@ -14,6 +14,20 @@ This is a FastAPI application that allows users to upload .mseed files and read 
 - Docker (for running the application in a container)
 - obspy (To read .mseed)
 
+## Installation
+
+- Python (if running locally)
+- Docker (for running the application in a container)
+- obspy (To read .mseed)
+
 ### Run the application
 
 - docker-compose up
+
+## Input
+
+- MiniSEED file (example.mseed)
+
+## Output
+
+- PNG image containing a seismic waveform chart with detected phases.
