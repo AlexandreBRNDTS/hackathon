@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tempfile import NamedTemporaryFile
 from obspy import read
+from obspy.clients.fdsn import Client
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import FileResponse
 from utils import generate_seismic_chart
@@ -13,7 +14,30 @@ app = FastAPI()
 
 PHASENET_API_URL = "https://ai4eps-eqnet.hf.space"
 
-PD = None
+LAST_TRACING = None
+
+
+def save_last_tracing(stream, phase_data):
+    client = Client("IRIS")
+    network = stream[0].stats["network"]
+    station = stream[0].stats["station"]
+
+    inventory = client.get_stations(network=network, station=station, level="station")
+    latitude = inventory[0][0].latitude
+    longitude = inventory[0][0].longitude
+
+    for phase in phase_data:
+        phase.pop("station_id")
+
+    global LAST_TRACING
+    LAST_TRACING = {
+        "network": network,
+        "station": station,
+        "starttime": stream[0].stats["starttime"].strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3],
+        "latitude": latitude,
+        "longitude": longitude,
+        "phase_data": phase_data
+    }
 
 @app.post("/plot/")
 async def predict(file: UploadFile = File(...)):
@@ -23,15 +47,13 @@ async def predict(file: UploadFile = File(...)):
             file_like_object = io.BytesIO(contents)
             stream = read(file_like_object)
             stream = stream.sort()
-            assert(len(stream) == 3)
+            if len(stream) != 3:
+                return {"message": "Invalid number of traces in MiniSEED file"}
 
             data = []
             for trace in stream:
                 data.append(trace.data)
-
             data = np.array(data).T
-            assert(data.shape[-1] == 3)
-
             data_id = stream[0].get_id()[:-1]
             timestamp = stream[0].stats.starttime.datetime.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
 
@@ -40,7 +62,6 @@ async def predict(file: UploadFile = File(...)):
                 "timestamp": [timestamp],
                 "vec": [data.tolist()]
             }
-
             resp = requests.post(f'{PHASENET_API_URL}/predict', json=req)
 
             if resp.status_code != 200:
@@ -48,10 +69,9 @@ async def predict(file: UploadFile = File(...)):
 
             phase_data = resp.json()
 
-            fig = generate_seismic_chart(stream, phase_data)
+            save_last_tracing(stream, phase_data)
 
-            global PD
-            PD = phase_data
+            fig = generate_seismic_chart(stream, phase_data)
 
             # Save the chart to a bytes buffer
             with NamedTemporaryFile("wb+", delete=False) as f:
@@ -72,13 +92,5 @@ async def predict(file: UploadFile = File(...)):
 
 @app.get("/data/")
 async def data():
-    if PD:
-        return {
-            "network": "BW",
-            "station": "BW",
-            "latitude": -20.49,
-            "longitude": 30.00,
-            "phase_data": PD
-        }
-    return {}
+    return LAST_TRACING
     
