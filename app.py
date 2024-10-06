@@ -9,8 +9,18 @@ from obspy.clients.fdsn import Client
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import FileResponse
 from utils import generate_seismic_chart
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# Define allowed origins, methods, and headers for CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Adjust this to the specific domains you want to allow
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers (Authorization, Content-Type, etc.)
+)
 
 PHASENET_API_URL = "https://ai4eps-eqnet.hf.space"
 
